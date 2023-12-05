@@ -4,6 +4,25 @@ apply plugin: "androidx.navigation.safeargs.kotlin"
 apply plugin: 'kotlin-parcelize'
 apply plugin: 'com.google.devtools.ksp'
 
+def getPropertiesFromFile() {
+    //可以使用绝对路径，也可以使用相对路径
+    def versionFile = file('../keystore/pwd.properties')
+    Properties properties = new Properties()
+    if (versionFile.canRead()) {
+        properties.load(new FileInputStream(versionFile))
+    } else {
+        properties['storeFile'] = "null! Could not find pwd.properties!"
+        properties['storePassword'] = "null! Could not find pwd.properties!"
+        properties['keyAlias'] = "null! Could not find pwd.properties!"
+        properties['keyPassword'] = "null! Could not find pwd.properties!"
+        //也可以直接抛异常
+//        throw new GradleException("Could not find fileConfigs.properties!")
+    }
+    logger.quiet("properties==${properties}")
+    return properties
+}
+def signingProperties = getPropertiesFromFile()
+
 android {
     compileSdk 33
     namespace "code.name.monkey.retromusic"
@@ -20,7 +39,6 @@ android {
 
         buildConfigField("String", "GOOGLE_PLAY_LICENSING_KEY", "\"${getProperty(getProperties('../public.properties'), 'GOOGLE_PLAY_LICENSE_KEY')}\"")
     }
-    def signingProperties = getProperties('retro.properties')
     def releaseSigning
     if (signingProperties != null) {
         releaseSigning = signingConfigs.create("release") {
